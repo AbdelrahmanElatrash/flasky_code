@@ -7,11 +7,54 @@
 </head>
 <body>
     <div class="">
-        <ul class="">
+
+        <form id="form">
+            <input id='title' type="text" name="title" placeholder="Task Title" required>
+            <input id='description' type="text" name="description" placeholder="Task Description" required>
+            <button type="submit">Add Task</button>
+        </form>
+    </div>
+
+    <div class="">
+        <ul id="todo" class="">
             {% for task in tasks %}
-           <li class="">{{task.title}}: {{task.description}}</li>
-           {% endfor %}
+                <li class="">{{task.title}}: {{task.description}}</li>
+            {% endfor %}
         </ul>
     </div>
+
+    <script>
+        document.getElementById('form').onsubmit = e => {
+            e.preventDefault()
+
+            fetch('/create',
+                {
+                    method : 'POST',
+                    headers :{'Content-Type':'application/json'},
+                    body: JSON.stringify({
+                        'title':document.getElementById('title').value,
+                        'description':document.getElementById('description').value
+                    }),
+                }
+            )
+            .then(
+                response => {
+                    return response.json()
+                }
+            )
+            .then(
+                function(jsonresponse){
+                    console.log(jsonresponse)
+                    const LiItem = document.createElement('LI')
+                    LiItem.innerHTML = jsonresponse['title']+' : '+ jsonresponse['description'];
+                    document.getElementById('todo').appendChild(LiItem)
+                })
+                .catch( (error)=>{
+                console.log(error)
+                alert('somthing went wrong ')
+            })
+        }
+        
+    </script>
 </body>
 </html>

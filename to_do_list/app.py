@@ -1,4 +1,4 @@
-from flask import Flask , render_template  # pip install flask "psycopg[binary]"
+from flask import Flask , render_template, request, redirect, url_for, jsonify  # pip install flask "psycopg[binary]"
 from flask_sqlalchemy import SQLAlchemy
 
 
@@ -50,6 +50,26 @@ def index():
     
     tasks = Todo.query.all()
     return render_template('index.html', tasks =tasks)
+
+@app.route('/create', methods=['POST'])
+def add_task():
+    # title = request.form.get('title')
+    # description = request.form.get('description')
+
+    title = request.get_json()['title']
+    description = request.get_json()['description']
+
+    task = Todo(title=title, description=description)
+
+    db.session.add(task)
+    db.session.commit()
+
+    # return redirect(url_for('index'))  # for form data handler
+    # change return to be json , import jisonify from flask
+    return jsonify({
+        'title': task.title,
+        'description': task.description,
+    })
 
 
 if __name__ == ("__main__"):
