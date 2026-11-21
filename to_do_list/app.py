@@ -1,10 +1,10 @@
-from flask import Flask , render_template, request, redirect, url_for, jsonify  # pip install flask "psycopg[binary]"
+from flask import Flask , render_template, request, redirect, url_for, jsonify,abort  # pip install flask "psycopg[binary]"
 from flask_sqlalchemy import SQLAlchemy
-
+import sys
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:pass@localhost:5432/todo"
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:pas@localhost:5432/todo"
 db = SQLAlchemy(app)
 
 class Todo(db.Model):
@@ -55,21 +55,36 @@ def index():
 def add_task():
     # title = request.form.get('title')
     # description = request.form.get('description')
+    
+    error = False
+    body = {}
+    
+    
+    try:
+        title = request.get_json()['title']
+        description = request.get_json()['description']
+        task = Todo(title=title, description=description)
 
-    title = request.get_json()['title']
-    description = request.get_json()['description']
+        db.session.add(task)
+        db.session.commit()
 
-    task = Todo(title=title, description=description)
-
-    db.session.add(task)
-    db.session.commit()
-
-    # return redirect(url_for('index'))  # for form data handler
-    # change return to be json , import jisonify from flask
-    return jsonify({
-        'title': task.title,
-        'description': task.description,
-    })
+        body["tile"] = title
+        body["description"] = description
+    except :
+        error = True
+        db.session.rollback()
+        print(sys.exc_info())
+    finally:
+        db.session.close()
+    if error:
+        abort(400)
+    else :
+        # return redirect(url_for('index'))  # for form data handler
+        # change return to be json , import jisonify from flask
+        return jsonify({
+            'title': task.title,
+            'description': task.description,
+        })
 
 
 if __name__ == ("__main__"):
